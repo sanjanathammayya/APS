@@ -1,0 +1,349 @@
+---
+title: "Intro to R"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+#### Execute the following cells to load the libraries
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+#### Load the food texture dataset
+```{r}
+file = 'Codes/Data/food-texture.csv'
+#file = 'Data/food-texture.csv'
+foodData = read.csv(file, header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+head(foodData, 2)
+str(foodData)
+```
+
+#### Modify Crispy column to reflect high (0) or low (1) crispiness
+```{r}
+foodData = foodData %>% mutate(Crispylevel = ifelse(Crispy > 11, 'High', 'Low'))
+```
+
+##### Change Crispy and Crispylevel columns to factor (categorical) type
+```{r}
+# Continuous features -> Oil, Density, Hardness, Fracture
+# Categorical features -> Crispy (8 levels 8 through 15) and Crispylevel (2 levels 0 and 1)
+# Crispy is a categorical feature with an order
+str(foodData)
+categorical_cols = c('Crispy', 'Crispylevel')
+foodData[categorical_cols] = lapply(foodData[categorical_cols], as.factor)
+str(foodData)
+```
+
+#### Visualize the Oil Percentage feature (continuous) using a histogram
+```{r}
+p = ggplot(data = foodData) +
+  geom_histogram(aes(x = Oil), binwidth = 1, color = 'steelblue')
+p
+```
+
+```{r}
+p = ggplot(data = foodData[foodData$Crispy == 13, ]) +
+  geom_histogram(aes(x = Density), binwidth = 100, color = 'blue')
+p
+```
+
+```{r}
+p = ggplot(data = foodData) +
+  geom_histogram(aes(x = Hardness), binwidth = 10, color = 'steelblue')
+p
+```
+
+
+
+#### Scatter plot between Oil Percentage and Density (relating two continuous variables)
+```{r}
+p = ggplot(data = foodData) +
+  geom_point(aes(x = Density, y = Oil), color = 'red') +
+  labs(x = 'Density', y = 'Oil percentage', title = 'Pastry Analysis')
+p
+```
+
+#### Scatter plot between OilPercentage and Density color coded with Crispylevel
+```{r}
+p = ggplot(data = foodData) +
+  geom_point(aes(x = Density, y = Oil)) +
+  labs(x = 'Density', y = 'Oil percentage', title = 'Pastry Analysis')
+p
+```
+
+```{r}
+p = ggplot(data = foodData) +
+  geom_point(aes(x = Density, y = Oil, color = Crispy, shape= Crispylevel)) +
+  labs(x = 'Density', y = 'Oil percentage', title = 'Pastry Analysis')
+p
+
+```
+
+
+```{r}
+p = ggplot(data = foodData) +
+  geom_point(aes(x = Density, y = Oil, color = Crispylevel)) +
+  labs(x = 'Density', y = 'Oil percentage', title = 'Pastry Analysis')
+p
+
+```
+
+
+#### Scatter plot between Density and Hardness
+```{r}
+```
+
+#### Scatter plot between Density and Fracture
+```{r}
+```
+
+#### Smooth line plot using ggplot
+```{r}
+p = ggplot(data = foodData) +
+  geom_smooth(aes(x = Oil, y = Density))
+p
+```
+
+#### Barplot for Crispy (categorical variable)
+```{r}
+p = ggplot(data = foodData) +
+  geom_bar(aes(x = Crispy))
+p
+```
+
+#### In-built functions for dataframes
+```{r}
+# Mean oil percentage across all samples
+
+# Mean-centering of OilPercentage
+
+# Sum of the squared deviation from the mean
+
+# Average of the squared deviation from the mean
+
+# Variance of OilPercentage
+
+# Standard deviation of OilPercentage
+```
+
+
+#### Box plot using ggplot with color coding
+```{r}
+p = ggplot(data = foodData) +
+  geom_boxplot(aes(y = Oil))
+p
+```
+
+```{r}
+p = ggplot(data = foodData) +
+  geom_boxplot(aes(x = Crispylevel, y = Oil))
+p
+```
+
+```{r}
+p = ggplot(data = foodData[foodData$Crispylevel == 'Low', ]) +
+  geom_histogram(aes(x = Density), binwidth = 100, color = 'blue')
+p
+```
+
+#####percentile and quantiles
+
+# what is a percentile? sometimes also reffered to 
+# as the quantile
+```{r}
+foodData %>% select(Oil)
+median(foodData$Oil) # 50 th percentile or 0.5th quantile
+mean(foodData$Oil)
+```
+
+```{r}
+foodData %>% select(Oil)
+Oil_median=median(foodData$Oil) # 50 th percentile or 0.5th quantile
+#mean(foodData$Oil)
+print(Oil_median)
+```
+
+# find the fraction of samples whose oil percentage is less than or equal to median oil percentage (50th percentile)=0.5
+
+#P(Random sample's oil percentage <=median oil percentage)= 0.5
+```{r}
+foodData %>% select(Oil)
+Oil_median=median(foodData$Oil) # 50 th percentile or 0.5th quantile
+#mean(foodData$Oil)
+print(Oil_median)
+
+#foodData %>% filter(Oil <= Oil_median) %>% select(Oil)
+nrow(foodData %>% filter(Oil <= Oil_median) %>% select(Oil))/nrow(foodData)
+#foodData$Oil --> vector output
+#foodData$Oil <=Oil_median --> true / false o/p
+mean(foodData$Oil <=Oil_median)
+```
+
+
+#Diabetes
+
+#### Load the food Diabetes dataset
+```{r}
+file = 'Codes/Data/diabetes.csv'
+#file = 'Data/food-texture.csv'
+diabetData = read.csv(file, header = TRUE, stringsAsFactors = FALSE)
+head(diabetData, 2)
+str(diabetData)
+```
+
+```{r}
+categorical_cols=c('Outcome')
+foodData[categorical_cols] = lapply(diabetData[categorical_cols], as.factor)
+str(foodData)
+```
+
+
+```{r}
+#diabetData = diabetData %>% mutate(Plevel = ifelse(Pregnancies > 10, 'High', 'Low'))
+```
+
+```{r}
+str(diabetData)
+categorical_cols = c('Pregnancies', 'Outcome')
+diabetData[categorical_cols] = lapply(diabetData[categorical_cols], as.factor)
+str(diabetData)
+```
+
+
+#### Visualize the Glucose feature (continuous) using a histogram
+```{r}
+p = ggplot(data = diabetData) +
+  geom_histogram(aes(x = Glucose), binwidth = 10, color = 'steelblue')
+p
+```
+
+```{r}
+mean(diabetData$Glucose)
+median(diabetData$Glucose)
+mean(diabetData$Glucose <= median(diabetData$Glucose))
+sum(diabetData$Glucose <= median(diabetData$Glucose))
+nrow(diabetData)
+
+quantile(diabetData$Glucose,0.5) # P(Glucose <+0.5th quantile)=0.5
+quantile(diabetData$Glucose,0.25)
+sum(diabetData$Glucose<=99)/nrow((diabetData))
+```
+
+#### Scatter plot between Glucose and Insulin (relating two continuous variables)
+```{r}
+p = ggplot(data = diabetData) +
+  geom_point(aes(y = Glucose, x = Insulin), color = 'red') +
+  labs(y = 'Glucose', x = 'Insulin', title = 'Diabetes Analysis')
+p
+```
+
+
+```{r}
+p = ggplot(data = diabetData) +
+  geom_point(aes(y = Glucose, x = Insulin, color = Outcome)) +
+  labs(y = 'Glucose', x = 'Insulin', title = 'Diabetes Analysis')
+p
+
+```
+
+
+```{r}
+data = diabetData %>% filter(Insulin!=0)
+data
+```
+
+```{r}
+p = ggplot(data = diabetData %>% filter(Insulin!=0)) +
+  geom_point(aes(y = Glucose, x = Insulin, color = Outcome)) +
+  labs(y = 'Glucose', x = 'Insulin', title = 'Diabetes Analysis')
+p
+
+```
+
+
+```{r}
+diabetData %>% select(Glucose)
+Glucose_median=median(diabetData$Glucose) # 50 th percentile or 0.5th quantile
+print(Glucose_median)
+nrow(diabetData %>% filter(Glucose <= Glucose_median) %>% select(Glucose))/nrow(diabetData)
+mean(diabetData$Glucose <=Glucose_median)
+```
+
+
+
+```{r}
+p = ggplot(data = diabetData %>% filter(Insulin!=0)) +
+  geom_point(aes(x = Age, y = Glucose, color = Outcome)) +
+  labs(y = 'Glucose', x = 'Age', title = 'Diabetes Analysis')
+p
+
+```
+
+
+```{r}
+p = ggplot(data = diabetData) +
+  geom_boxplot(aes(x = Outcome, y = Glucose))
+p
+```
+
+```{r}
+p = ggplot(data = diabetData) +
+  geom_boxplot(aes(y = Glucose))
+p
+```
+
+
+```{r}
+p = ggplot(data = diabetData) +
+  geom_boxplot(aes(y = Age))
+p
+```
+
+```{r}
+p = ggplot(data = diabetData) +
+  geom_histogram(aes(x = Age), binwidth = 10, color = 'steelblue')
+p
+```
+
+```{r}
+mean(diabetData$Age)
+median(diabetData$Age)
+```
+
+
+```{r}
+p = ggplot(data = diabetData) +
+  geom_boxplot(aes(y = Age))
+p
+```
+
+```{r}
+p = ggplot(data = diabetData) +
+  geom_boxplot(aes(y = Age , x= Outcome))
+p
+```
+
+```{r}
+#p = ggplot(data = diabetData) +
+  #geom_boxplot(aes(y = Outcome))
+#p
+```
+
+```{r}
+p = ggplot(data = diabetData  %>% filter(Insulin!=0)) +
+  geom_boxplot(aes(y = Age , x= Outcome))
+p
+```
+
+```{r}
+
+```
+
+```{r}
+```
