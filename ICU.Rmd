@@ -1,0 +1,169 @@
+---
+title: "The MIMIC ICU data"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(mice)
+```
+
+```{r}
+## Load ICU dataset
+file = 'Codes/Data/ICU_filtered.csv'
+dfICU = read.csv(file, header = TRUE, stringsAsFactors = TRUE)
+str(dfICU)
+```
+
+```{r}
+## Print first 5 samples of data frame
+head(dfICU, n = 5)
+```
+
+```{r}
+## Plot fraction of missing values (NAs) in each column of the data frame
+pMissDF = setNames(stack(sapply(dfICU, function(x){(sum(is.na(x))/length(x))*100}))[2:1], c('Feature','Value'))
+p = ggplot(data = pMissDF, aes(x = Feature, y = Value)) +
+  geom_bar(stat = 'identity', fill = 'steelblue', width = 0.3) +
+  theme(text = element_text(size = 14, face = 'bold'),
+  axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab('') + ylab('Percentage') +
+  ggtitle('Percentage of NAs across all features')  +
+  theme(plot.title = element_text(size = 12, hjust = 0.5),
+        axis.text = element_text(size = 8),
+        axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold"))
+p
+```
+
+```{r}
+## Drop columns with more than 20% missing values
+dfICU = dfICU %>% select(-c(pMissDF[pMissDF['Value'] > 20, 'Feature']))
+```
+
+```{r}
+## Collate 4 different ICU types (CCU, CSRU, SICU, CCU) into one column
+## called 'ICU', remove separate ICU columns and the following columns:
+## (1) 'recordid' (2) In.hospital_death (3) Length_of_stay
+dfICU[dfICU['CCU'] == 1, 'ICU'] = 1
+dfICU[dfICU['CSRU'] == 1, 'ICU'] = 2
+dfICU[dfICU['SICU'] == 1, 'ICU'] = 3
+dfICU[(dfICU['CCU'] == 0 ) & (dfICU['CSRU'] == 0) & (dfICU['SICU'] == 0), 'ICU'] = 4
+dfICU = dfICU %>% select(-c(CCU, CSRU, SICU, recordid, In.hospital_death, Length_of_stay))
+```
+
+```{r}
+## Create list of ordinal, categorical, and continuous features
+features = colnames(dfICU)
+ordinal_features = c('GCS_first')
+categorical_features = c('Gender', 'MechVent', 'ICU')
+continuous_features = features[c(!(colnames(dfICU) %in% c(ordinal_features, categorical_features)))]
+```
+
+```{r}
+## Convert ordinal and categorical columns to correct type
+dfICU[categorical_features] = lapply(dfICU[categorical_features], as.factor)
+dfICU[ordinal_features[1]] = lapply(dfICU[ordinal_features[1]], ordered, levels = seq(max(dfICU$GCS_first[!is.na(dfICU$GCS_first)]), min(dfICU$GCS_first[!is.na(dfICU$GCS_first)]), -1))
+str(dfICU)
+```
+
+```{r}
+# Impute missing values using the MICE package
+dfICU = complete(mice(dfICU, m = 40, maxit = 10, pred = quickpred(dfICU, minpuc = 0.25), seed = 500))
+```
+
+```{r}
+p=ggplot(data=dfICU)+
+  geom_histogram(aes(x=Length_of_stay),binwidth = 15)
+p
+```
+
+
+```{r}
+p=ggplot(data=dfICU)+
+  geom_histogram(aes(x=DiasABP_first))
+p
+```
+
+
+```{r}
+p=ggplot(data=dfICU)+
+  geom_point(aes(y=Length_of_stay,x=Age,color='red'))+
+  labs(x='Length_of_stay',y='Age',title='ICU Analysis')
+p
+```
+
+
+
+```{r}
+p=ggplot(data=dfICU)+
+  geom_point(aes(y=Length_of_stay,x=Age,color=Gender))+
+  labs(x='Age',y='Length_of_stay',title='ICU Analysis')
+p
+```
+
+
+```{r}
+p=ggplot(data=dfICU)+
+  geom_bar(aes(y=Length_of_stay))+
+  labs(title='ICU Analysis')
+p
+```
+
+
+```{r}
+p=ggplot(data=dfICU)+
+  geom_point(aes(y=Length_of_stay,x=Age,color=In.hospital_death))+
+  labs(x='Age',y='Length_of_stay',title='ICU Analysis')
+p
+```
+
+
+```{r}
+p=ggplot(data=dfICU)+
+  geom_boxplot(aes(x=DiasABP_first,y=MechVent))
+p
+```
+
+
+```{r}
+
+s_appointment = c(0,1)
+ 
+p_morning = 0.3
+p_afternoon = 0.6
+p_appointment= matrix(nrow = 2, ncol=2, c(1-p_morning,p_morning,c(1-p_afternoon),p_afternoon),byrow=TRUE)
+ 
+s_software = c(5000,10000)
+p_software = matrix(c(0.3,0.7,0.5,0.5),nrow = 2, ncol = 2, byrow = TRUE)
+ 
+ 
+salesresults = function() {
+  result = numeric(2)
+ 
+  
+  for (j in c(1:2)) {
+    result[j] = sample(s_appointment, size = 1, replace = TRUE, prob = p_appointment[j,])
+  }
+  
+  earnings = ifelse(result[1] == 1, sample(s_software, size = 1, replace = TRUE, prob = p_software[1, ]),0) + ifelse(result[2] == 1, sample(s_software, size = 1, replace = TRUE, prob = p_software[2, ]),0)
+  
+  return(earnings)
+}
+  
+nsimulations = 1e5
+simulatedData = replicate(nsimulations,salesresults())
+ 
+ 
+mean(simulatedData == 5000)
+ 
+ 
+```
+

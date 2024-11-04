@@ -1,0 +1,50 @@
+---
+title: "The MIMIC ICU data"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(mice)
+```
+
+```{r}
+# Sampling space for appointment success (0 corresponds to no sale, 1 corresponds to a sale)
+s_appointment = c(0,1)
+
+# Appointment success and failure probabilities
+p_morning = 0.3
+p_afternoon = 0.6
+p_appointment= matrix(nrow = 2, ncol=2, c(1-p_morning,p_morning,c(1-p_afternoon),p_afternoon),byrow=TRUE)
+ 
+s_software = c(5000,10000)
+p_software = matrix(c(0.3,0.7,0.5,0.5),nrow = 2, ncol = 2, byrow = TRUE)
+ 
+ 
+salesresults = function() {
+  result = numeric(2)
+ 
+  
+  for (j in c(1:2)) {
+    result[j] = sample(s_appointment, size = 1, replace = TRUE, prob = p_appointment[j,])
+  }
+  
+  earnings = ifelse(result[1] == 1, sample(s_software, size = 1, replace = TRUE, prob = p_software[1, ]),0) + ifelse(result[2] == 1, sample(s_software, size = 1, replace = TRUE, prob = p_software[2, ]),0)
+  
+  return(earnings)
+}
+  
+nsimulations = 1e5
+simulatedData = replicate(nsimulations,salesresults())
+ 
+ 
+mean(simulatedData == 5000)
+```
+

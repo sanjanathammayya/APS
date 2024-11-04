@@ -1,0 +1,407 @@
+---
+title: "Coding Assignment on dplyr and ggplot"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+#### Load the bodyfat dataset
+```{r}
+# Load the bodyfat dataset
+file = 'Codes/Data/bodyfat.csv'
+df = read.csv(file, header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+str(df)
+head(df, n = 2)
+```
+
+#### Create lists of categorical and continuous features
+```{r}
+# Create lists of categorical and continuous features
+features = colnames(df)
+categorical_features = c('Gender')
+continuous_features = features[!(colnames(df) %in% categorical_features)]
+```
+
+#### Convert categorical columns to correct type
+```{r}
+# Convert categorical columns to correct type
+df[categorical_features] = lapply(df[categorical_features], as.factor)
+str(df)
+```
+
+#### Summarizing sample data: mean, variance, standard deviation, median, percentiles, and quantiles
+```{r}
+# Summarizing sample data: mean, variance, standard deviation, median, percentiles, and quantiles
+
+df$Weight
+mean(df$Weight) # avg
+df$Weight-mean(df$Weight) #mean centering rate # deviation vector
+(df$Weight-mean(df$Weight))^2 # squared- deviations vector
+ # mean of sqaure deviation 
+mean((df$Weight-mean(df$Weight))^2) # sample variance
+var(df$Weight) # sample variance using in-built function 
+sqrt(mean((df$Weight-mean(df$Weight))^2)) # sample standard deviations
+sd(df$Weight) # sample standard deviations using in-built function
+(df$Weight -mean(df$Weight))/sd(df$Weight) # standardizes weight values with no units (bcz kg kg cancels)  ## Also called Z-scores of weights
+
+scale(df$Weight) # standardizes weight values USING WEIGHT VALUES
+
+## weights in pounds, df['Weightlbs']=
+## weights in grams , df['Weightgms']=
+#df$WeightgmsS[1] op-70 42. de$Weightlbs[1]  op=157.74, gma[1]   op=70420
+```
+
+#### Plot the distribution of males and females in the dataset
+```{r}
+# Plot the distribution of males and females in the dataset
+p = ggplot(data = df) +
+  geom_bar(aes(x=Gender),color= 'black',fill='steel blue') +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Gender',
+       y = 'Frequency',
+       title = 'Distribution of Genders')
+p+coord_flip()
+#p
+
+```
+
+# continuous variable 
+#### Plot a component plot of weight values ##component plot-- plot with respect to values of single continuous variable here is weight
+```{r}
+# Plot a component plot of weight values
+p = ggplot(data = df) +
+  geom_point(aes(x=1:nrow(df),y=Weight)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Patient #',
+       y = 'Weight (kg)',
+       title = 'Component Plot ofWeights')
+p
+```
+
+#get red line
+```{r}
+p = ggplot(data = df) +
+  geom_point(aes(x=1:nrow(df),y=Weight)) +
+  geom_hline(yintercept = mean(df$Weight), color='red')+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Patient #',
+       y = 'Weight (kg)',
+       title = 'Component Plot of Weights')
+p
+```
+
+# get dotted/dashed red line
+```{r}
+p = ggplot(data = df) +
+  geom_point(aes(x=1:nrow(df),y=Weight)) +
+  geom_hline(yintercept = mean(df$Weight), color='red', linetype='dashed')+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Patient #',
+       y = 'Weight (kg)',
+       title = 'Component Plot of Weights')
+p
+```
+
+
+# better plot # bcz -ve and +ve points 
+```{r}
+p = ggplot(data = df) +
+  geom_point(aes(x=1:nrow(df),y=Weight-mean(Weight))) +
+  ##geom_hline(yintercept = mean(df$Weight), color='red', linetype='dashed')+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Patient #',
+       y = 'Weight (kg)',
+       title = 'Component Plot of Mean-centered Weights')
+p
+```
+
+#### Plot a component plot of Bodyfat values
+```{r}
+# Plot a component plot of weight values
+p = ggplot(data = df) +
+  geom_point(aes(x=1:nrow(df),y=Bodyfat)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Patient #',
+       y = 'Bodyfat (g)',
+       title = 'Component Plot of Bodyfat')
+p
+```
+
+
+```{r}
+p = ggplot(data = df) +
+  geom_point(aes(x=1:nrow(df),y=Bodyfat)) +
+  geom_hline(yintercept = mean(df$Bodyfat), color='red', linetype='dashed')+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Patient #',
+       y = 'Bodyfat (g)',
+       title = 'Component Plot of Bodyfat')
+p
+```
+
+
+```{r}
+p = ggplot(data = df) +
+  geom_point(aes(x=1:nrow(df),y=Bodyfat-mean(Bodyfat))) +
+  ##geom_hline(yintercept = mean(df$Weight), color='red', linetype='dashed')+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Patient #',
+       y = 'Bodyfat (g)',
+       title = 'Component Plot of Mean-centered Bodyfat')
+p
+```
+
+# histogram
+#Plot a histogram of weight values
+```{r}
+# Plot a histogram of weight values
+mean_weight = mean(df$Weight)
+sd_weight = sd(df$Weight)
+p = ggplot(data = df) +
+  geom_histogram(aes(x=Weight, y=after_stat(count)), breaks=seq(mean_weight-3*sd_weight, mean_weight+3*sd_weight, by=2.0),color='black', fill='steel blue',alpha = 0.4)+ 
+  geom_vline(aes(xintercept = mean(Weight)), color='red',linetype="dashed", size=1)+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Weight (kg)',
+       y = 'Frequency',
+       title = 'Frequency Histogram of Weights')
+p
+```
+
+#### Plot a histogram of weight values
+```{r}
+
+## don't refer
+# Plot a histogram of weight values
+mean_weight = mean(df$Weight)
+sd_weight = sd(df$Weight)
+p = ggplot(data = df) +
+  geom_histogram(aes(x=Weight, y=after_stat(count()))) +
+  #geom_vline(?)+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Weight (kg)',
+       y = 'Frequency',
+       title = 'Frequency Histogram of Weights')
+p
+```
+
+#### Plot a histogram of height values
+```{r}
+# Plot a histogram of height values
+mean_height = mean(df$Height)
+sd_height = sd(df$Height)
+p = ggplot(data = df) +
+  geom_histogram(aes(x=Height, y=after_stat(count)), breaks=seq(mean_height-3*sd_height, mean_height+3*sd_height, by=0.5),color='black', fill='steel blue',alpha = 0.4)+ 
+  geom_vline(aes(xintercept = mean(Height)), color='red',linetype="dashed", size=1)+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Height (inch)',
+       y = 'Frequency',
+       title = 'Frequency Histogram of Heights')
+p
+
+```
+
+#### Plot a histogram of bodyfat values
+```{r}
+# Plot a histogram of bodyfat values
+mean_bodyfat = mean(df$Bodyfat)
+sd_bodyfat = sd(df$Bodyfat)
+p = ggplot(data = df) +
+  geom_histogram(aes(x=Bodyfat, y=after_stat(count)), breaks=seq(mean_bodyfat-3*sd_bodyfat, mean_bodyfat+3*sd_bodyfat, by=1.0),color='black', fill='steel blue',alpha = 0.4)+ 
+  geom_vline(aes(xintercept = mean(Bodyfat)), color='red',linetype="dashed", size=1)+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Bodyfat (kg)',
+       y = 'Frequency',
+       title = 'Frequency Histogram of Bodyfats')
+p
+```
+
+#### Plot a histogram of weights for both genders
+```{r}
+# Plot a histogram of weights for both genders
+mean_weight = mean(df$Weight)
+sd_weight = sd(df$Weight)
+p = ggplot(data = df) +
+  geom_histogram(aes(x=Weight, y=after_stat(count),color=Gender))+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Weight (kg)',
+       y = 'Frequency',
+       title = 'Frequency Histogram of Weights for male and female')
+p
+
+```
+
+#### Plot a boxplot of bodyfat values
+```{r}
+# Plot a boxplot of bodyfat values
+
+p = ggplot(data = df) +
+  geom_boxplot(aes(y=Bodyfat)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Gender',
+       y = 'Frequency',
+       title = 'Frequency Boxplot of Weights for male and female')
+p
+```
+
+#### Plot a boxplot of bodyfat values for both genders
+```{r}
+# Plot a boxplot of bodyfat values for both genders
+
+
+p = ggplot(data = df) +
+  geom_boxplot(aes(x=Gender, y=Bodyfat)) +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+  axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title = element_text(size = 14, face = "bold"))+
+  labs(x = 'Gender',
+       y = 'Frequency',
+       title = 'Boxplot of Frequency bodyfat of Weights for male and female')
+p
+
+```
+
+#### Introduce a new categorical column in the dataframe called 'Weightlevel' with the following levels: (1) low (< 25th percentile of weights) (2) medium (in the IQR of weights) (3) high (>75th percentile of weights)
+```{r}
+# Introduce a new categorical column in the dataframe called weight level with the following levels: (1) low (< 25th percentile of weights) (2) medium (in the IQR of weights) (3) high (>75th percentile of weights)
+
+
+#df['Wlevel']=df['Weight'] %>% mutate(Wlevel = ifelse(Weight < quantile(Weight, 0.25), "low",
+                       #ifelse(Weight > quantile(Weight, 0.75), "high", "medium")))
+#xgender y=weight levels
+
+
+#df['Wlevel']=df['Weight'] %>% mutate(Weightlevel = case_when(
+    #Weight < quantile(Weight, 0.25) ~ "low",
+   # Weight <= (quantile(Weight, 0.25) + IQR(Weight)) ~ "medium"))
+
+
+
+
+q25=quantile(df$Weight,0.25)
+
+q75=quantile(df$Weight,0.75)
+
+df=df %>% mutate(Weightlevel = case_when(Weight<=q25~'low', Weight>q25 & Weight<q75~'Medium',Weight>q75~'High' ))
+```
+
+
+```{r}
+categorical_cols=c('Weightlevel')
+df[categorical_features] = lapply(df[categorical_features], as.factor)
+str(df)
+```
+#### Convert categorical columns to correct type
+# Convert categorical columns to correct type
+```{r}
+p = ggplot(data = df) +
+
+  geom_boxplot(aes(x=Gender,y=Bodyfat, fill=Weightlevel))+
+
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+
+  axis.text = element_text(size = 12),
+
+  axis.text.x = element_text(size = 14),
+
+  axis.text.y = element_text(size = 14),
+
+  axis.title = element_text(size = 14, face = "bold"))+
+
+  labs(x = 'Weightlevel',
+
+       y = 'Bodyfat',
+
+       title = 'boxplot of bodyfat values for both weightlevel')
+
+p
+ 
+
+
+
+```
+
+
+```{r}
+#df <- df %>% select(-Wlevel)
+
+```
+
+
+#### Plot a boxplot of bodyfat values for both genders across the three Weightlevel groups
+```{r}
+# Plot a boxplot of bodyfat values for both genders both genders across the three Weightlevel groups
+````
+
+#### The 68-95-99 rule
+```{r}
+# The 68-95-99 rule
+
+```
+
+
